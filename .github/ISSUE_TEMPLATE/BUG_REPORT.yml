@@ -1,0 +1,64 @@
+name: Bug report
+description: Submit a report and help us to improve RPdb
+title: 'Bug: '
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: |
+        A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: |
+        Describe the steps to reproduce the bug.
+      value: |
+        1.
+        2.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: Describe what you expected to happen instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: system
+    attributes:
+      label: Operating system
+      description: |
+        Select operating system where RPdb is installed / running.
+      options:
+        - "Android"
+        - "Windows"
+        - "Linux"
+        - "Other"
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: |
+        Select used browser if it affects the web app.
+      options:
+        - "Firefox"
+        - "Chrome"
+        - "Safari"
+        - "Other"
+  - type: input
+    id: system-version
+    attributes:
+      label: System version
+      description: |
+        Input your version of the os or browser.
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional info
+      description: Any additional information related to the issue (ex. browser console errors, software versions, etc).
