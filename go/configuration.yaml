@@ -1,0 +1,51 @@
+## This file is a demo configuration file  with all available optiions
+
+user:
+  # The API-Key to login in
+  apiKey: 64CharacterLongApiKey
+  # For security reasons you can also provide the API Key dynamically via a file. The token is then read from the specified field
+  apiKey_file: /mnt/secrets/apiKey
+
+  # Force the use of a specific language for the API. This is a two-digit code (ISO 639).
+  # Supported values are for example 'de' and 'en'
+  language: en
+
+  # When running multiple instances with the same API-Key (WHICH IS NOT RECOMMENDED),
+  # you should set this flag to true that this client is also notified when an entry or
+  # attribute was changed
+  multiInstance: false
+
+  # Base API URL used for queries
+  #baseURL: https://rpdb.rpjosh.de/api/v1
+
+  # Socket URL for updates and some attribute types
+  #socketURL: wss://rpdb.rpjosh.de/api/v1/socket
+
+# Configuration options for specific attributes. You have to provide at least one value
+attributes:
+
+  # You can provide an attribute either by name or ID
+  - id: 123
+    # Option to hide the attribute from list / show actions. It will still be executed if a "script" was given
+    hide: false
+    # Script or program that should be called when the entry should be executed
+    program: /home/myUser/RPdb/toggle-wifi.sh
+    # By default, besides the parameter (#1,...) of the entry additional details like:
+    #  dateTime (#2), attributeName (#3) and entryId (#4) are passed. If you just require
+    # the raw parameter values, set this flag to true.
+    passOnlyParameter: false  
+
+  # Specify by unique attribute name
+  - name: "Attribute name"
+    hide: true
+
+# Configure the logger. You can also use the environment variables 'LOGGER_PRINTLEVEL' for that
+logger:
+  # Minium print level for the console (trace, debug, info, warn, error)
+  printLevel: info
+
+  # Minimum log level for the log file
+  logLevel: warning
+
+  # Path to write the logs to. Leave this empty to disable logging to a file
+  logPath: ""
