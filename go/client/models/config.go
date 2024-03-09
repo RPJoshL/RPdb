@@ -114,6 +114,9 @@ func GetAppConfig(commandLine bool, configParser func(*AppConfig, []string) erro
 		return nil, fmt.Errorf("failed to parse the configuration: %s", err)
 	}
 
+	// Set default options
+	config.SetDefaults()
+
 	// Configure logger
 	logg := logger.GetLoggerFromEnv(&logger.Logger{
 		PrintLevel:    logger.GetLevelByName(config.LoggerConfig.PrintLevel),
@@ -179,17 +182,30 @@ func getConfigPath() string {
 }
 
 // ParseConfigFile parses the given configuration file (.yaml) to an Appconfiguration
-func ParseConfigFile(webConfig *AppConfig, file string) error {
+func ParseConfigFile(conf *AppConfig, file string) error {
 	dat, err := os.ReadFile(file)
 	if err != nil {
 		return err
 	}
 
-	if err := yaml.Unmarshal(dat, &webConfig); err != nil {
+	if err := yaml.Unmarshal(dat, &conf); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// SetDefaults applies default configuration options if they were
+// not set within the configuration file
+func (conf *AppConfig) SetDefaults() {
+
+	// Log level
+	if conf.LoggerConfig.PrintLevel == "" {
+		conf.LoggerConfig.PrintLevel = "info"
+	}
+	if conf.LoggerConfig.WriteLevel == "" {
+		conf.LoggerConfig.WriteLevel = "warning"
+	}
 }
 
 // Validate validates if this Appconfiguration is valid.
