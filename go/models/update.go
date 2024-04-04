@@ -34,6 +34,12 @@ type UpdateData[T any] struct {
 	// The unique IDs of the deleted objects
 	Deleted []int `json:"deleted"`
 
+	// Entrys: deleted objects to trigger the onDelete hook for.
+	// You will receive a WebSocket update with these entries even if you
+	// deleted them by yourself (because you probably won't have the data anymore :).
+	// You can only use the parameter, date of the entry, entry ID and the attribute ID from these data
+	DeletedPre []T `json:"deletedPre"`
+
 	// Updated objects with their new data
 	Updated []T `json:"updated"`
 

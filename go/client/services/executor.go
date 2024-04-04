@@ -8,6 +8,7 @@ import (
 
 	"github.com/RPJoshL/RPdb/v4/go/client/models"
 	mod "github.com/RPJoshL/RPdb/v4/go/models"
+	"github.com/RPJoshL/RPdb/v4/go/persistence"
 	"git.rpjosh.de/RPJosh/go-logger"
 )
 
@@ -24,23 +25,40 @@ type ProgramExecutor struct {
 }
 
 // Execute calls a program defined in the attribute options
-func (e *ProgramExecutor) Execute(ent mod.Entry) {
+func (e *ProgramExecutor) Execute(ent mod.Entry, typ persistence.ExecutionType) {
 	e.Mutex.Lock()
 	defer e.Mutex.Unlock()
 
 	// Get the attribute to execute
 	attr, doesExist := e.Attributes[ent.Attribute.ID]
-	if !doesExist || attr.Program == "" {
+	if !doesExist {
+		return
+	}
+	program := ""
+	logMessage := ""
+	switch typ {
+	case persistence.DEFAULT:
+		program = attr.Program
+		logMessage = "Executing entry"
+	case persistence.DELETE:
+		program = attr.OnDeleteProgram
+		logMessage = "Executing delete hook for entry"
+	default:
+		logger.Warning("Received unknown execution type: %q", typ)
+	}
+
+	// Nothing to execute
+	if program == "" {
 		return
 	}
 
-	logger.Info("Executing entry %s (#%d)", ent.DateTime.FormatPretty(), ent.ID)
+	logger.Info("%s %s with attribute %q (#%d)", logMessage, ent.DateTime.FormatPretty(), ent.Attribute.Name, ent.ID)
 
 	// Get the CLI parameters
 	params := e.getParameters(&ent, attr)
 
 	// Call the programm and detach its process
-	if err := e.startProgramm(attr.Program, params); err != nil {
+	if err := e.startProgramm(program, params); err != nil {
 		logger.Warning("Failed to start %q: %s", attr.Program, err)
 	}
 }

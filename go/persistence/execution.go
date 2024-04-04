@@ -12,6 +12,19 @@ import (
 	"git.rpjosh.de/RPJosh/go-logger"
 )
 
+// ExecutionType states the type of execution for which the
+// entry should be executed
+type ExecutionType int
+
+const (
+	// Default execution behaviour when the ExecutionTime of the Entry has been reached
+	DEFAULT ExecutionType = iota
+
+	// Delete is called for an Entry in the past (NOW < ExecutionTime) that was deleted from the user.
+	// It's referenced in RPdb as an "onDeleteHook"
+	DELETE
+)
+
 // Execution manages the scheduling of entries and calls your custom
 // function on execution.
 //
@@ -20,7 +33,7 @@ import (
 type Execution struct {
 
 	// Function that is called when an entry should be executed
-	Executor func(models.Entry)
+	Executor func(models.Entry, ExecutionType)
 
 	// Function that is called when an entry of the type "exec_response"
 	// was executed.
@@ -69,7 +82,7 @@ type Execution struct {
 // NewExecution creates a new struct for scheduling the execution of entries.
 // It does call the given function on execution and removes old entries from local
 // cache
-func NewExecution(executor func(models.Entry), executerExecResponse func(models.Entry) *models.ExecutionResponse, ignoreExecutionTime bool) *Execution {
+func NewExecution(executor func(models.Entry, ExecutionType), executerExecResponse func(models.Entry) *models.ExecutionResponse, ignoreExecutionTime bool) *Execution {
 	return &Execution{
 		Executor:             executor,
 		ExecuterExecResponse: executerExecResponse,
@@ -255,7 +268,7 @@ func (e *Execution) getNextEntryNormal(update *models.UpdateData[*models.Entry])
 // Execute executes the given entry and marks the entry as executed
 // if the attribute is from the type "exec_response"
 func (e *Execution) Execute(ent *models.Entry) {
-	logger.Debug("Executing entry %s (#%d)", ent.DateTime.FormatPretty(), ent.ID)
+	logger.Debug("Executing entry %s with attribute %q (#%d)", ent.DateTime.FormatPretty(), ent.Attribute.Name, ent.ID)
 
 	// Mark entry as exeucted (locally and also in the api for EA)
 	ent.SetExecuted(true)
@@ -270,7 +283,18 @@ func (e *Execution) Execute(ent *models.Entry) {
 	// Call the execute function
 	if e.Executor != nil {
 		go func(ent models.Entry) {
-			e.Executor(ent)
+			e.Executor(ent, DEFAULT)
+		}(*ent)
+	}
+}
+
+func (e *Execution) ExecuteDelete(ent *models.Entry) {
+	logger.Debug("Executing delete hook for entry %s with attribute %q (#%d)", ent.DateTime.FormatPretty(), ent.Attribute.Name, ent.ID)
+
+	// Call the execute function
+	if e.Executor != nil {
+		go func(ent models.Entry) {
+			e.Executor(ent, DELETE)
 		}(*ent)
 	}
 }

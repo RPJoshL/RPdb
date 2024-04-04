@@ -48,6 +48,7 @@ type AttributeOptions struct {
 	Id                int    `yaml:"id"`
 	Hide              bool   `yaml:"hide"`
 	Program           string `yaml:"program"`
+	OnDeleteProgram   string `yaml:"onDelete"`
 	PassOnlyParameter bool   `yaml:"passOnlyParameter"`
 }
 

@@ -84,7 +84,7 @@ func runPersistence(pers *persistence.Persistence) {
 	}
 }
 
-func Execute(ent models.Entry) {
+func Execute(ent models.Entry, typ persistence.ExecutionType) {
 	logger.Debug("Im received an entry to execute (%d)", ent.ID)
 }
 

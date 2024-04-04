@@ -48,6 +48,15 @@ func (p *Persistence) handleWebSocketMessage(msg models.WebSocketMessage) {
 		if msg.Update.Entry.IsUpdate() || msg.Update.Attribute.IsUpdate() {
 			p.Update.notifyForUpdates(&msg.Update)
 		}
+
+		// Trigger onDeleteHook (if any).
+		// These entries are already prefiltered by the WebSocket / API
+		if len(msg.Update.Entry.DeletedPre) != 0 {
+			for _, e := range msg.Update.Entry.DeletedPre {
+				p.entry.linkAttribute(e)
+				p.Options.Exeuction.ExecuteDelete(e)
+			}
+		}
 	} else if msg.Type == models.WebSocketTypeExecResponse {
 		p.entry.linkAttribute(&msg.ExecResponse)
 		resp := p.Options.Exeuction.ExecuteExecResponse(&msg.ExecResponse)
