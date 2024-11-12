@@ -48,6 +48,10 @@ type PersistenceOptions struct {
 	WebSocket WebSocket
 
 	Exeuction Execution
+
+	// Function to call before triggering an update after a full reload of the
+	// data (or after the initial trough of the [Start] function)
+	BeforeInitialUpdateRequest func(p *Persistence)
 }
 
 // NewPersistence creates a new persistence layer based on the given API.
@@ -91,8 +95,8 @@ func NewPersistenceWithContext(context context.Context, apiKey string, apiOption
 	return pers
 }
 
-// Start boots the persistence layer up and making it so ready
-// for further usage. This method does block because it makes
+// Start boots up the persistence layer and makes it ready
+// for further usage. This method does block, because it makes
 // requests against the api.
 //
 // Don't ever use any of the functions provided by the persistence layer
@@ -158,8 +162,7 @@ func (p *Persistence) ReloadData() error {
 		return fmt.Errorf("failed to load entries: %s", errEnt)
 	}
 
-	// No error occurred. The linking between attributes and attributes of
-	// entries have to be done now to finish the act
+	// No error occurred. Set the attribute references for the entries (they were not fetched to save bandwidth)
 	p.entry.mux.Lock()
 	p.entry.linkAttributes(&p.entry.data)
 	p.entry.mux.Unlock()
@@ -170,6 +173,9 @@ func (p *Persistence) ReloadData() error {
 	p.Update.versionLock.Unlock()
 
 	// Trigger update after first load
+	if p.Options.BeforeInitialUpdateRequest != nil {
+		p.Options.BeforeInitialUpdateRequest(p)
+	}
 	p.Update.notifyForUpdates(nil)
 
 	return nil

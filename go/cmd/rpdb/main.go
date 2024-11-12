@@ -12,14 +12,17 @@ import (
 	"git.rpjosh.de/RPJosh/go-logger"
 )
 
-// App contains shared ressource needed für the run of the application
+// App contains shared ressource needed for the run of the application
 type App struct {
 	config   *models.AppConfig
 	executor *service.ProgramExecutor
 
-	// Mutex used for oneShot that the program won't be leaved when the program is
+	// Mutex used for oneShot so the program won't be leaved when the program is
 	// still executed
 	executionSync *sync.Mutex
+
+	// Fetched attribute configuration from the config indexed by the ID
+	attributeMap map[int]models.AttributeOptions
 }
 
 // main provides a simple go application with CLI parameters support
@@ -37,6 +40,13 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Assign app variables
+	app := &App{
+		config:        conf,
+		executionSync: &sync.Mutex{},
+		attributeMap:  make(map[int]models.AttributeOptions),
+	}
+
 	// Configure the persistence layer
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -44,8 +54,9 @@ func main() {
 	pers := persistence.NewPersistenceWithContext(
 		ctx, conf.UserConfig.ApiKey, conf.ToApiOptions(),
 		&persistence.PersistenceOptions{
-			WebSocket: conf.ToWebsocketOptions(),
-			Exeuction: persistence.Execution{},
+			WebSocket:                  conf.ToWebsocketOptions(),
+			Exeuction:                  persistence.Execution{},
+			BeforeInitialUpdateRequest: app.initExecutor,
 		},
 	)
 
@@ -54,16 +65,29 @@ func main() {
 		logger.Fatal("Failed to start the persistence layer: %s", err)
 	}
 
-	// Index the attribute options by attribute id
-	attributeMap := make(map[int]models.AttributeOptions)
-	for i, a := range conf.AttributeConfig {
+	// Create context which expires in "oneShot" minutes
+	if app.config.RuntimeOptions.OneShot != nil {
+		oneShot := NewOneShot(*app.config.RuntimeOptions.OneShot, pers, &app.attributeMap, app.executionSync)
+
+		// Add update hook to persistence
+		oneShot.Start(pers.Update.RegisterObserver())
+	}
+
+	// Run the program infinite
+	select {}
+}
+
+// initExecutor initializes the executor after the persistence data were loaded
+// and maps the attribute config to the correct attribute
+func (app *App) initExecutor(pers *persistence.Persistence) {
+	for i, a := range app.config.AttributeConfig {
 
 		// Even if an ID is provided directly, we do validate it
 		if a.Id != 0 {
 			if _, err := pers.GetAttribute(a.Id); err != nil {
 				logger.Warning("Unable to get attribute with ID %d: %s", a.Id, err)
 			} else {
-				attributeMap[a.Id] = conf.AttributeConfig[i]
+				app.attributeMap[a.Id] = app.config.AttributeConfig[i]
 			}
 
 			continue
@@ -73,31 +97,17 @@ func main() {
 		if attr, err := pers.GetAttributeByName(a.Name); err != nil {
 			logger.Warning("Unable to get attribute with name %q: %s", a.Name, err)
 		} else {
-			attributeMap[attr.ID] = conf.AttributeConfig[i]
+			app.attributeMap[attr.ID] = app.config.AttributeConfig[i]
 		}
 	}
 
-	// Create and assign executor
-	var mxt sync.Mutex
-	app := &App{
-		config:        conf,
-		executionSync: &mxt,
-		executor: &service.ProgramExecutor{
-			Attributes: attributeMap,
-			Mutex:      &mxt,
-		},
+	// Init executor
+	app.executor = &service.ProgramExecutor{
+		Attributes: app.attributeMap,
+		Mutex:      app.executionSync,
 	}
+
+	// Assign exeuctor to persistence
 	pers.Options.Exeuction.Executor = app.executor.Execute
 	pers.Options.Exeuction.ExecuterExecResponse = app.executor.ExecuteResponse
-
-	// Create context which expires in "oneShot" minutes
-	if app.config.RuntimeOptions.OneShot != nil {
-		oneShot := NewOneShot(*app.config.RuntimeOptions.OneShot, pers, &attributeMap, app.executionSync)
-
-		// Add update hook to persistence
-		oneShot.Start(pers.Update.RegisterObserver())
-	}
-
-	// Run the program infinite
-	select {}
 }
