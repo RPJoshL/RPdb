@@ -205,7 +205,7 @@ func (w *WebSocket) newUpgrader() *websocket.Upgrader {
 
 // onClose handles the closing event of a WebSocket connection that was not
 // intentially closed
-func (w *WebSocket) onClose(c *websocket.Conn, i int, s string) {
+func (w *WebSocket) onClose(_ *websocket.Conn, i int, s string) {
 	if w.reconnectAttempts.Load() <= 1 {
 		logger.Info("Closed WebSocket with status %q (%d)", s, i)
 	} else {
@@ -338,13 +338,15 @@ func (l nbioLogger) Warn(message string, parameters ...any) {
 }
 
 func newNbioLogger() nbioLogger {
-	printLevel := logger.GetGlobalLogger().PrintLevel
-	logLevel := logger.GetGlobalLogger().LogLevel
+	printLevel := logger.GetGlobalLogger().Level
+	logLevel := logger.GetGlobalLogger().File.Level
 
 	log := logger.NewLoggerWithFile(
 		&logger.Logger{
-			LogLevel:      logLevel,
-			PrintLevel:    printLevel,
+			Level: printLevel,
+			File: &logger.FileLogger{
+				Level: logLevel,
+			},
 			ColoredOutput: logger.GetGlobalLogger().ColoredOutput,
 		}, logger.GetGlobalLogger(),
 	)

@@ -120,9 +120,11 @@ func GetAppConfig(commandLine bool, configParser func(*AppConfig, []string) erro
 
 	// Configure logger
 	logg := logger.GetLoggerFromEnv(&logger.Logger{
-		PrintLevel:    logger.GetLevelByName(config.LoggerConfig.PrintLevel),
-		LogLevel:      logger.GetLevelByName(config.LoggerConfig.WriteLevel),
-		LogFilePath:   config.LoggerConfig.LogPath,
+		Level: logger.GetLevelByName(config.LoggerConfig.PrintLevel),
+		File: &logger.FileLogger{
+			Level: logger.GetLevelByName(config.LoggerConfig.WriteLevel),
+			Path:  config.LoggerConfig.LogPath,
+		},
 		ColoredOutput: true,
 	})
 	logger.SetGlobalLogger(logg)

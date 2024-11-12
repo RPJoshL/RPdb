@@ -14,7 +14,7 @@ func runPersistence(pers *persistence.Persistence) {
 
 	// You have to call always start before using the instance
 	if err := pers.Start(); err != nil {
-		logger.Fatal("Failed to start persistence: %s", pers)
+		logger.Fatal("Failed to start persistence: %s", err)
 	}
 
 	// Update listener

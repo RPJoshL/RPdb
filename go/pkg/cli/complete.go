@@ -32,7 +32,7 @@ func isCompletionSupported(root *cliField[any]) bool {
 
 	// Set the global log level to error so that the run isn't interrupted with logging to stdout
 	log := logger.GetGlobalLogger()
-	log.PrintLevel = logger.LevelError
+	log.Level = logger.LevelError
 	logger.SetGlobalLogger(log)
 
 	return true
@@ -87,7 +87,7 @@ func getCompletionOptionCheckFunction(val reflect.Value) (rtc reflect.Value) {
 }
 
 // printCurrentOptions prints all options that the user does currently have
-func printCurrentOptions(entry *cliField[any], root *cliField[any], usedParams []string, currentInput string) {
+func printCurrentOptions(entry *cliField[any], _ *cliField[any], usedParams []string, currentInput string) {
 	opts := make([]string, 0)
 
 	// Get the help of the root

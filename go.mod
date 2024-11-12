@@ -3,9 +3,9 @@ module github.com/RPJoshL/RPdb/v4
 go 1.20
 
 require (
-	git.rpjosh.de/RPJosh/go-logger v1.2.0
+	git.rpjosh.de/RPJosh/go-logger v1.3.3
 	github.com/lesismal/nbio v1.3.10
-	golang.org/x/sys v0.10.0
+	golang.org/x/sys v0.19.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 

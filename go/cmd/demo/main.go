@@ -31,8 +31,10 @@ func main() {
 // configureLogger configures the gloal logger with some default values
 func configureLogger() {
 	globalLogger := logger.Logger{
-		PrintLevel:    logger.LevelDebug,
-		LogLevel:      logger.LevelWarning,
+		Level: logger.LevelDebug,
+		File: &logger.FileLogger{
+			Level: logger.LevelWarning,
+		},
 		ColoredOutput: true,
 		PrintSource:   true,
 	}
