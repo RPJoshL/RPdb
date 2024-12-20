@@ -3,7 +3,6 @@ package models
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/RPJoshL/RPdb/v4/go/api"
@@ -11,6 +10,8 @@ import (
 	"git.rpjosh.de/RPJosh/go-logger"
 	yaml "gopkg.in/yaml.v3"
 )
+
+var ErrCliParse = fmt.Errorf("unable to parse the command line")
 
 // AppConfig is the root configuration struct of the application with
 // the various sub configurations
@@ -99,10 +100,6 @@ func (o *RuntimeOptions) SetOneShot(value string) string {
 // GetAppConfig parses the configuration file and applies the CLI parameters afterwards
 // through the given function
 func GetAppConfig(commandLine bool, configParser func(*AppConfig, []string) error) (*AppConfig, error) {
-
-	// Preparse special command line parameters
-	checkHelpAndVersionArgs(configParser)
-
 	// Get the configuration path
 	configPath := getConfigPath()
 	if configPath == "" {
@@ -136,31 +133,10 @@ func GetAppConfig(commandLine bool, configParser func(*AppConfig, []string) erro
 
 	// Parse command line options
 	if err := configParser(config, os.Args); err != nil {
-		return nil, fmt.Errorf("unable to parse the command line")
+		return nil, ErrCliParse
 	}
 
 	return config, nil
-}
-
-// checkHelpAndVersionArgs checks if the first CLI argument is "--version" or
-// "--help". For these parameters a configuration file is not needed and are therefore
-// parsed manually.
-// If one of these parameters were found the program is exited
-func checkHelpAndVersionArgs(configParser func(*AppConfig, []string) error) {
-	if len(os.Args) <= 1 {
-		// No parameters to check
-		return
-	}
-
-	// Only the first given parameter is checked
-	arg := strings.ToLower(os.Args[1])
-
-	// These are all special commands
-	if arg == "--version" || arg == "-v" || arg == "--help" || arg == "-h" || arg == "?" {
-		// If one of these were found call the configParser function (with empty config)
-		configParser(&AppConfig{}, []string{"", arg})
-		os.Exit(0)
-	}
 }
 
 // getConfigPath determines the file location of the configuration file.

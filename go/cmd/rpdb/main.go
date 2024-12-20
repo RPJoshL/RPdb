@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/RPJoshL/RPdb/v4/go/client/models"
@@ -32,6 +33,10 @@ func main() {
 	// Parse and get configuration
 	conf, err := models.GetAppConfig(true, args.ParseArgs)
 	if err != nil {
+		if err != models.ErrCliParse {
+			CheckForAnonymousArgs(args.AnonymousCliOptions)
+		}
+
 		logger.Fatal("Startup failed: %s", err)
 	}
 
@@ -110,4 +115,26 @@ func (app *App) initExecutor(pers *persistence.Persistence) {
 	// Assign exeuctor to persistence
 	pers.Options.Exeuction.Executor = app.executor.Execute
 	pers.Options.Exeuction.ExecuterExecResponse = app.executor.ExecuteResponse
+}
+
+// CheckForAnonymousArgs checks if the first CLI argument is whitelisted to be used "anonymously" without
+// a valid configuration file. They are parsed manually inside this function.
+// If one of these parameters were found, the program is exited
+func CheckForAnonymousArgs(anonymousArgs []string) {
+	if len(os.Args) <= 1 {
+		// No parameters to check
+		return
+	}
+
+	// Only the first given parameter is checked
+	arg := strings.ToLower(os.Args[1])
+	for _, anonArg := range anonymousArgs {
+		if anonArg == arg {
+			e := args.ParseAnonymousArgs(os.Args)
+			if e != nil {
+				logger.Fatal("Failed to parse CLI args: %s", e)
+			}
+			os.Exit(0)
+		}
+	}
 }

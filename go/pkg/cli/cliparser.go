@@ -23,12 +23,12 @@ import (
 //
 // The required field can have multiple meanings and values:
 //
-//	\+ -> the field has to be present (+)
-//	- -> the field has not be present (optional)
-//	  1..9        -> the parameter will be matched by position INSTEAD OF the given key.
-//	  Therefore, these have to stand at the beginning before all key arguments,
-//	  and can't be a struct (no root)
-//	  +var1,+var2 -> the field has to be present, if longKey1 OR longKey2 in the SAME level is present
+//   - \+ -> the field has to be present (+)
+//   - - -> the field has not be present (optional)
+//   - 1..9        -> the parameter will be matched by position INSTEAD OF the given key.
+//     Therefore, these have to stand at the beginning before all key arguments,
+//     and can't be a struct (no root)
+//   - +var1,+var2 -> the field has to be present, if longKey1 OR longKey2 in the SAME level is present
 //
 // Only for struct fields that are not a struct by themselves, the value will be parsed as key + value.
 //
@@ -53,11 +53,11 @@ import (
 //   - int
 //   - float
 //   - boolean
-//   - string[]		As single arguments surrounded by [] ([ "1. Param" "2. Para" ]).
+//   - string[]: As single arguments surrounded by [] ([ "1. Param" "2. Para" ]).
 //     The autocomplete function receives '[]string' instead of a single 'string'
-//   - int[]		As a comma seperated list within one argument (1,2,3,4)
+//   - int[]:    As a comma seperated list within one argument (1,2,3,4)
 //
-// An return value <= 0 indicates an error
+// A return value <= 0 indicates an error
 func ParseParams(args []string, structs any) int {
 
 	// The cliFields are constructed in a tree structure. Load all of them
@@ -203,7 +203,7 @@ func parse(root *cliField[any], args []string, entry *cliField[any], level int) 
 			}
 
 			// Call finish function for struct
-			if root.setter.IsValid() {
+			if root.setter.IsValid() && !(root.disabled || (field != nil && field.disabled)) {
 				if root.setter.Type().NumIn() == 0 {
 					root.setter.Call([]reflect.Value{})
 				} else {
@@ -482,6 +482,10 @@ func contains[T any](array *[]T, element T) bool {
 
 // Calls the setter of the field without a value
 func (field *cliField[T]) callSetterWithoutValue() error {
+	if field.disabled {
+		return nil
+	}
+
 	if !field.setter.IsValid() {
 		logger.Debug("No Setter found for %s. Because '~~~' was given, nothing will be done", field.longKey)
 		return nil
@@ -499,6 +503,10 @@ func (field *cliField[T]) callSetterWithoutValue() error {
 
 // Applies the given value to the struct / field
 func (field *cliField[T]) setValue(value any) error {
+	if field.disabled {
+		return nil
+	}
+
 	if field.setter.IsValid() {
 		in := make([]reflect.Value, field.setter.Type().NumIn())
 

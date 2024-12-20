@@ -16,7 +16,7 @@ const (
 	PARAMETER_TYPE_BOOL   = "boolean"
 )
 
-// Attribute is used for grouping entries to a shqared "executable"
+// Attribute is used for grouping entries to a shared "executable"
 // operation.
 // For each entry an attribute is required
 type Attribute struct {
@@ -42,6 +42,10 @@ type Attribute struct {
 
 	// Rights of the currently authenticated token for entries created with this attribute
 	Rights Right `json:"rights"`
+
+	// Default right to apply if the right is not overwritten by a specific token configuration.
+	// It does overwrite the global token rights only if it is set to `all` or the attribute ones are set to `none`
+	DefaultRight Right `json:"default_right"`
 
 	// A list of parameters taht are available for this attribute
 	Parameter []AttributeParameter `json:"parameters"`

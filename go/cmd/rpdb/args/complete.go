@@ -8,7 +8,7 @@ import (
 )
 
 type Completion struct {
-	// Shell for which the completion should be printed
+	// Shell for which the completion code should be printed out
 	Shell string `cli:"--shell,-shell,,1" completion:"GetShells"`
 }
 
@@ -18,7 +18,7 @@ func (c *Completion) GetShells(cli *Cli, input string) (rtc []string) {
 
 func (c *Completion) SetShell(value string) string {
 	if strings.ToLower(value) != "bash" {
-		return "Only the shell 'Bash' is supported currently"
+		return "Currenty only the shell 'Bash' is supported"
 	}
 
 	c.Shell = value

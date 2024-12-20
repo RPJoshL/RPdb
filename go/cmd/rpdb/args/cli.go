@@ -13,6 +13,13 @@ import (
 	"github.com/RPJoshL/RPdb/v4/go/pkg/cli"
 )
 
+// Cli parameters that can be processed without having a concrete app configuration
+var AnonymousCliOptions = []string{
+	"--version", "-v",
+	"--help", "-h", "?",
+	"completion", "comp",
+}
+
 type Cli struct {
 
 	// This args are passed to the root
@@ -69,6 +76,24 @@ func ParseArgs(config *models.AppConfig, args []string) error {
 		RuntimeOptions: &config.RuntimeOptions,
 		Entry:          &Entry{},
 		Attribute:      &Attribute{},
+		Completion:     &Completion{},
+	}
+
+	if cli.ParseParams(args, cl) < 0 {
+		return fmt.Errorf("")
+	}
+
+	return nil
+}
+
+// ParseAnonymousArgs is like [ParseArgs] but only processes command line arguments
+// that can be handled without a valid configuration file
+func ParseAnonymousArgs(args []string) error {
+	cl := &Cli{
+		UserConfig:     &models.UserConfig{},
+		RuntimeOptions: &models.RuntimeOptions{},
+		Entry:          &Entry{Disabled: true},
+		Attribute:      &Attribute{Disabled: true},
 		Completion:     &Completion{},
 	}
 

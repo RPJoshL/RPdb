@@ -8,7 +8,15 @@ import (
 	"git.rpjosh.de/RPJosh/go-logger"
 )
 
+type FieldDisabler interface {
+	IsFieldDisabled() bool
+}
+
 type cliField[T any] struct {
+
+	// Whether this field is disabled for setter cals
+	disabled bool
+
 	shortKey string
 	longKey  string
 
@@ -117,6 +125,7 @@ func setupChildFromTag(tags []string, field *cliField[any], structure any) {
 
 	// Setup autocomplete function
 	field.completionFunction = getCompletionFunction(field.structField, structure)
+	field.setDisabledStatus(false)
 
 	if len(tags) >= 3 && tags[2] != "" {
 		field.defaultValue = &tags[2]
@@ -164,6 +173,7 @@ func (field *cliField[T]) setupRootField() {
 	field.completionOptionCheck = getCompletionOptionCheckFunction(field.reflectValue.Addr())
 	field.setHelp()
 	field.setRootSetter()
+	field.setDisabledStatus(false)
 }
 
 // Searches for a help method and stores them inside the field
@@ -191,6 +201,21 @@ func (field *cliField[T]) setRootSetter() {
 		} else {
 			logger.Error("Expected no or one parameter (entry struct) for the method %s", "Set"+convertToPascalCase(field.reflectValue.Type().Name()))
 		}
+	}
+}
+
+func (field *cliField[T]) setDisabledStatus(isRootDisabled bool) {
+	if disabler, ok := field.reflectValue.Addr().Interface().(FieldDisabler); ok {
+		field.disabled = isRootDisabled || disabler.IsFieldDisabled()
+
+		// Also disable all childs if the root is disabled
+		if field.disabled {
+			for i := range field.chields {
+				field.chields[i].setDisabledStatus(true)
+			}
+		}
+	} else if isRootDisabled {
+		field.disabled = true
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 
 // Attribute contains attribute options for the CLI
 type Attribute struct {
+	Disabled      bool
 	AttributeList AttributeList `cli:"list,l"`
 }
 
@@ -84,4 +85,8 @@ func (al *AttributeList) SetAttributeList(cli *Cli) string {
 
 	cli.PrintStructsFormatted(&rtc, al.Format)
 	return ""
+}
+
+func (al *Attribute) IsFieldDisabled() bool {
+	return al.Disabled
 }

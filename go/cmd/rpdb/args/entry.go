@@ -14,6 +14,7 @@ import (
 
 // Entry contains entry options for the CLI
 type Entry struct {
+	Disabled    bool
 	EntryList   EntryList   `cli:"list,l"`
 	EntryDelete EntryDelete `cli:"delete,d"`
 	EntryCreate EntryCreate `cli:"create,c"`
@@ -339,4 +340,8 @@ func (e *EntryUpdate) SetEntryUpdate(cli *Cli) string {
 	}
 
 	return ""
+}
+
+func (e *Entry) IsFieldDisabled() bool {
+	return e.Disabled
 }
