@@ -43,7 +43,7 @@ attributes:
   - name: "Attribute name"
     hide: true
 
-# Configure the logger. You can also use the environment variables 'LOGGER_PRINTLEVEL' for that
+# Configure the logger. You can also use the environment variables 'LOGGER_LEVEL' or 'LOGGER_FILE_LEVEL' for that
 logger:
   # Minium print level for the console (trace, debug, info, warn, error)
   printLevel: info

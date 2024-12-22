@@ -232,25 +232,7 @@ func (w *WebSocket) onClose(_ *websocket.Conn, i int, s string) {
 // scheduleReconnect schedules a reconnect of the WebSocket after a short waiting time
 // to not attach the WebSocket server :)
 func (w *WebSocket) scheduleReconnect() {
-	waitTime := 5 * time.Second
-	c := w.reconnectAttempts.Load()
-
-	if c < 2 {
-		waitTime = 5 * time.Second
-	} else if c < 6 {
-		waitTime = 10 * time.Second
-	} else if c < 10 {
-		waitTime = 120 * time.Second
-	} else if c < 15 {
-		waitTime = 5 * time.Minute
-	} else if c < 25 {
-		waitTime = 10 * time.Minute
-	} else if c < 50 {
-		waitTime = 30 * time.Minute
-	} else if c < 90 {
-		waitTime = 60 * time.Minute
-	}
-
+	waitTime := GetReconnectTimeout(int(w.reconnectAttempts.Load()))
 	logger.Debug("Scheduled a reconnect in %.0f seconds", waitTime.Seconds())
 
 	go func() {
@@ -261,6 +243,34 @@ func (w *WebSocket) scheduleReconnect() {
 			logger.Debug("Not rescheduling an reconnect because context was canceled")
 		}
 	}()
+}
+
+type Timeout struct {
+	max     int
+	timeout time.Duration
+}
+
+// GetReconnectTimeout returns a timeout for the next reconnect attemt to the websocket
+// based on the provided retry count.
+// With a higher counter, the wait time will increase
+func GetReconnectTimeout(retries int) time.Duration {
+	timeouts := []Timeout{
+		{2, 5 * time.Second},
+		{6, 10 * time.Second},
+		{10, 120 * time.Second},
+		{15, 5 * time.Minute},
+		{25, 10 * time.Minute},
+		{50, 30 * time.Minute},
+		{90, 60 * time.Minute},
+	}
+
+	for _, timeout := range timeouts {
+		if retries < timeout.max {
+			return timeout.timeout
+		}
+	}
+
+	return 90 * time.Minute
 }
 
 // CloseWithMessage tries to close the WebSocket with the given reason

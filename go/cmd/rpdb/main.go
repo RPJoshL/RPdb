@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/RPJoshL/RPdb/v4/go/client/models"
 	service "github.com/RPJoshL/RPdb/v4/go/client/services"
@@ -41,7 +42,7 @@ func main() {
 	}
 
 	// Nothing to do anymore -> leave
-	if conf.RuntimeOptions.OneShot == nil && !conf.RuntimeOptions.Service {
+	if conf.RuntimeOptions.OneShot == nil && !conf.RuntimeOptions.Service && !conf.RuntimeOptions.ServiceRetry {
 		os.Exit(0)
 	}
 
@@ -66,9 +67,7 @@ func main() {
 	)
 
 	// Initialize the persistence layer
-	if err := pers.Start(); err != nil {
-		logger.Fatal("Failed to start the persistence layer: %s", err)
-	}
+	StartPersistence(pers, conf.RuntimeOptions.ServiceRetry, 0)
 
 	// Create context which expires in "oneShot" minutes
 	if app.config.RuntimeOptions.OneShot != nil {
@@ -135,6 +134,20 @@ func CheckForAnonymousArgs(anonymousArgs []string) {
 				logger.Fatal("Failed to parse CLI args: %s", e)
 			}
 			os.Exit(0)
+		}
+	}
+}
+
+// StartPersistence tries to load all required data for the initial startup
+func StartPersistence(pers *persistence.Persistence, retry bool, retryCounter int) {
+	if err := pers.Start(); err != nil {
+		if retry {
+			waitTime := persistence.GetReconnectTimeout(retryCounter + 1)
+			logger.Info("Starting of the persistence layer failed. Trying again in %.0f seconds", waitTime.Seconds())
+			time.Sleep(waitTime)
+			StartPersistence(pers, retry, retryCounter+1)
+		} else {
+			logger.Fatal("Failed to start the persistence layer: %s", err)
 		}
 	}
 }

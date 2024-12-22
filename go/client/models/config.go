@@ -68,6 +68,9 @@ type RuntimeOptions struct {
 	// This will use the persistent layer of the library
 	Service bool `cli:"--service,-s,~~~"`
 
+	// Automatically retries to fetch attributes and entries from the server when the initial load failed
+	ServiceRetry bool `cli:"--service-retry,-sr,~~~"`
+
 	// Leaves the program when no entries in the next X minutes are available. The time will be reset
 	// after an entry was executed
 	OneShot *time.Duration `cli:"--oneShot,-os"`
@@ -78,6 +81,11 @@ type RuntimeOptions struct {
 
 func (o *RuntimeOptions) SetService() string {
 	o.Service = true
+	return ""
+}
+
+func (o *RuntimeOptions) SetServiceRetry() string {
+	o.ServiceRetry = true
 	return ""
 }
 

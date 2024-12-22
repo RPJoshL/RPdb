@@ -52,6 +52,7 @@ Generic options (these has to be specified at the beginning and affects only the
   --quiet         -q              |Instead of a user friendly message the raw data / no date will be printed.
 
   --service       -s              |Runs this program infinite to execute scheduled entries
+  --service-retry -sr             |Automatically retries to fetch data from the server if the initial load fails (no exit)
   --oneShot       -os   {time}    |The program will be exited, when no entries in the next {time} are available.
                                   |The time will be reset after an entry was executed. Example: '3h', '1h10m'
   --version       -v              |Prints the version of the application
