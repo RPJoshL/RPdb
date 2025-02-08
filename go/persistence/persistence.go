@@ -47,7 +47,7 @@ type Persistence struct {
 type PersistenceOptions struct {
 	WebSocket WebSocket
 
-	Exeuction Execution
+	Exeuction *Execution
 
 	// Function to call before triggering an update after a full reload of the
 	// data (or after the initial trough of the [Start] function)

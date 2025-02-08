@@ -23,7 +23,7 @@ func main() {
 	// Using the persistence layer with WebSocket support
 	pers := persistence.NewPersistence(apiKey, apiOptions, &persistence.PersistenceOptions{
 		WebSocket: persistence.WebSocket{UseWebsocket: true},
-		Exeuction: *persistence.NewExecution(Execute, ExecuteWithResponse, false),
+		Exeuction: persistence.NewExecution(Execute, ExecuteWithResponse, false),
 	})
 	runPersistence(pers)
 }

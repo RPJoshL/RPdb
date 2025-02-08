@@ -50,7 +50,7 @@ func runApi(a *api.Api) {
 
 	rspMessage, err := a.DeleteEntry(entUpdate.ID)
 	if err == nil {
-		logger.Debug(rspMessage.String())
+		logger.Debug("%s", rspMessage.String())
 	}
 
 	bulkCreate, _, err := a.CreateEntries([]*models.Entry{

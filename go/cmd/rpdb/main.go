@@ -61,7 +61,7 @@ func main() {
 		ctx, conf.UserConfig.ApiKey, conf.ToApiOptions(),
 		&persistence.PersistenceOptions{
 			WebSocket:                  conf.ToWebsocketOptions(),
-			Exeuction:                  persistence.Execution{},
+			Exeuction:                  &persistence.Execution{},
 			BeforeInitialUpdateRequest: app.initExecutor,
 		},
 	)

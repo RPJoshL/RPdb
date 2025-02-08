@@ -20,8 +20,8 @@ const (
 	// Default execution behaviour when the ExecutionTime of the Entry has been reached
 	DEFAULT ExecutionType = iota
 
-	// Delete is called for an Entry in the past (NOW < ExecutionTime) that was deleted from the user.
-	// It's referenced in RPdb as an "onDeleteHook"
+	// Delete is called for entries in the past (NOW < ExecutionTime) that were deleted from the user.
+	// It's referenced in RPdb as a "onDeleteHook"
 	DELETE
 )
 
@@ -148,7 +148,7 @@ func (e *Execution) schedule() {
 			dateTime = nextEntry.DateTimeExecution.Time
 		}
 
-		logger.Debug(utils.Sprintfl("Scheduled next execution in %.1f seconds (#%d)", time.Until(dateTime).Seconds(), nextEntry.ID))
+		logger.Debug("%s", utils.Sprintfl("Scheduled next execution in %.1f seconds (#%d)", time.Until(dateTime).Seconds(), nextEntry.ID))
 
 		if e.normalTimer == nil {
 			return

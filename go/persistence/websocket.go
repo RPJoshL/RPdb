@@ -87,7 +87,7 @@ func (w *WebSocket) Start() {
 
 	// Try to close any old connections
 	if err := w.CloseWithMessage(uint16(1000), "Disconnect"); err != nil {
-		logger.Warning(err.Error())
+		logger.Warning("%s", err.Error())
 	}
 
 	// Increment the reconnect counter
