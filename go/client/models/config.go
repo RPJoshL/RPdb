@@ -51,6 +51,7 @@ type AttributeOptions struct {
 	Program           string `yaml:"program"`
 	OnDeleteProgram   string `yaml:"onDelete"`
 	PassOnlyParameter bool   `yaml:"passOnlyParameter"`
+	HideResponse      bool   `yaml:"hideResponse"`
 }
 
 // LoggerConfig is used to customize the logging output and behaviour

@@ -34,6 +34,9 @@ attributes:
     #  dateTime (#2), attributeName (#3) and entryId (#4) are passed. If you just require
     # the raw parameter values, set this flag to true.
     passOnlyParameter: false 
+    # Disable the returning of a response for this attribute. This is by default only the case for a return
+    # code of 124
+    hideResponse: true
 
     # Script or program to call when an entry (with an execution time in the past) was deleted.
     # The "passOnlyParameter" option is also used here

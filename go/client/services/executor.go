@@ -80,6 +80,13 @@ func (e *ProgramExecutor) ExecuteResponse(ent mod.Entry) (rtc *mod.ExecutionResp
 		return nil
 	}
 
+	// Do not return a response
+	if attr.HideResponse {
+		logger.Debug("Returning a response is diabled in config")
+		e.Execute(ent, persistence.DEFAULT)
+		return nil
+	}
+
 	logger.Info("Executing entry %s (#%d) and returning response", ent.DateTime.FormatPretty(), ent.ID)
 
 	// Get the CLI parameters
@@ -90,7 +97,7 @@ func (e *ProgramExecutor) ExecuteResponse(ent mod.Entry) (rtc *mod.ExecutionResp
 	// Combine stdout and stderr
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
-		logger.Warning(err.Error())
+		logger.Warning("%s", err.Error())
 	}
 	cmd.Stderr = cmd.Stdout
 	defer cmdReader.Close()
@@ -116,6 +123,12 @@ func (e *ProgramExecutor) ExecuteResponse(ent mod.Entry) (rtc *mod.ExecutionResp
 			rtc.Text += err.Error()
 			rtc.Code = -1
 		}
+	}
+
+	// Hide response for return code 124
+	if rtc.Code == 124 {
+		logger.Debug("Return code is 124. Not returning a response")
+		return nil
 	}
 
 	return
