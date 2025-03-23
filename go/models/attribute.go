@@ -78,14 +78,17 @@ type AttributeParameter struct {
 	// Force the usage of a predefinded value for this parameter
 	ForcePreset bool `json:"force_preset"`
 
+	// Force the usage of a non-empty value (not 'null' or '')
+	ForceValue bool `json:"force_value"`
+
 	// Predefined values for this parameter
 	Presets []ParameterPreset `json:"presets"`
 }
 
-// ParameterPreset is a object that countains predefined values
-// for an pamarter of an attribute.
+// ParameterPreset contains predefined values
+// for a parameter of an attribute.
 // These can be used during the creation of an entry to make the management of
-// available values for an parmaeter easier
+// available values for a parameter easier
 type ParameterPreset struct {
 
 	// Unique name of the preset within the parameter
@@ -106,11 +109,11 @@ type ParameterPreset struct {
 // returned to the client
 type AttributeExecResponse struct {
 
-	// Weather this function is enabled
+	// Whether this function is enabled
 	Enabled bool `json:"enabled"`
 
 	// When this toggle is set an entry for this attribute can also be scheduled delayed.
-	// By default the execution time has to be "now"
+	// By default, the execution time has to be "now"
 	AllowDelayedExecution bool `json:"allow_delayed_execution"`
 
 	// The default time to wait for an execution response

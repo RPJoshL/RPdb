@@ -162,7 +162,7 @@ func (e *Entry) UnmarshalJSON(data []byte) error {
 //
 // This function will add an element to the Parameters array with special values that the
 // API server will understand.
-// It's not good but the only option when no pointer / sql.NullArray can be used
+// It's not good but the only available option when we don't use a pointer / [sql.NullArray]
 func (p *Entry) DontIncludeParametersInRequest() {
 	p.Parameters = []EntryParameter{{Value: ParameterAnyValue + ParameterAnyValue}}
 }
@@ -192,12 +192,19 @@ Execution:  %s
 }
 
 func (e Entry) ToSlice() []string {
-	return []string{
+	rtc := []string{
 		fmt.Sprintf("%d", e.ID),
 		e.DateTime.Format(TimeFormat),
 		e.Attribute.Name,
 		e.DateTimeExecution.Format(TimeFormat),
 	}
+
+	// Add all parameter values
+	for _, p := range e.Parameters {
+		rtc = append(rtc, p.GetValue(e.Attribute))
+	}
+
+	return rtc
 }
 
 // GetParameterValue returns the value of this parameter that should be
@@ -206,7 +213,7 @@ func (e Entry) ToSlice() []string {
 func (ep *EntryParameter) GetValue(attribute *Attribute) string {
 	if attribute != nil && ep.Preset != "" {
 		for _, p := range attribute.Parameter {
-			// Find parameter by id
+			// Find parameter by ID
 			if p.ID == ep.ParameterID {
 				// Find preset for this parameter
 				for _, pp := range p.Presets {
@@ -241,7 +248,7 @@ func (ep *EntryParameter) GetDisplay(attribute *Attribute, short bool) string {
 		return ep.Preset
 	} else {
 		for _, p := range attribute.Parameter {
-			// Find parameter by id
+			// Find parameter by ID
 			if p.ID == ep.ParameterID {
 				// Find preset for this parameter
 				for _, pp := range p.Presets {
@@ -277,7 +284,7 @@ func (e *Entry) IsPast(ignoreExecutionTime bool) bool {
 		(ignoreExecutionTime || e.DateTimeExecution.IsZero() || e.DateTimeExecution.Before(time.Now()))
 }
 
-// WasExecuted states weather this entry was already executed
+// WasExecuted states whether this entry was already executed
 // in an execution context.
 // Only use this function if the entry was created from the API and was not cloned!
 func (e *Entry) WasExecuted() bool {
